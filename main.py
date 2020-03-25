@@ -1,11 +1,67 @@
 #!/usr/bin/python3
 
-from PyQt5.QtWidgets import *
+import sys
 
-app = QApplication([])
-win = QMainWindow()
-button = QPushButton('Test')
-win.setCentralWidget(button)
-win.show()
-app.exit(app.exec_())
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import QThread, Qt, pyqtSignal, pyqtSlot
+from PyQt5.QtGui import QImage, QPixmap
+
+from boson_video import BosonCamera
+
+
+class VideoThread(QThread):
+    changePixmap = pyqtSignal(QImage)
+
+    def __init__(self, app, camera):
+        super().__init__(app)
+        self.camera = camera
+
+    def run(self):
+        self.camera.start(self.set_image)
+
+    def set_image(self, img):
+        h, w, c = img.shape
+        #img = img.flatten()
+        print(h, w, c)
+        convertToQtFormat = QImage(img, w, h, w * c, QImage.Format_RGB888)
+        p = convertToQtFormat.scaled(640, 513, Qt.KeepAspectRatio)
+        self.changePixmap.emit(p)
+        print('emitted')
+
+
+class App(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.title = 'PyQt5 Video'
+        self.left = 100
+        self.top = 100
+        self.width = 640
+        self.height = 512
+
+        self.camera = BosonCamera()
+
+        self.initUI()
+
+    @pyqtSlot(QImage)
+    def setImage(self, image):
+        self.label.setPixmap(QPixmap.fromImage(image))
+
+    def initUI(self):
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
+        self.resize(1800, 1200)
+        # create a label
+        self.label = QLabel(self)
+        self.label.move(280, 120)
+        self.label.resize(640, 512)
+        th = VideoThread(self, self.camera)
+        th.changePixmap.connect(self.setImage)
+        th.start()
+        self.show()
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = App()
+    sys.exit(app.exec_())
+
 

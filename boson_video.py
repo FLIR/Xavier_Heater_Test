@@ -17,12 +17,14 @@ class BosonCamera:
 
         while vid.isOpened() and not self.stop_signal:
             empty, frame = vid.read()
+            color_frame = np.repeat(frame[:, :, np.newaxis], 3, axis=2)
+            on_new_frame(color_frame)
+            #cv2.imshow("s", frame)
 
-            cv2.imshow("s", frame)
+#            if cv2.waitKey(1) & 0xFF == ord('q'):
+#                break
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
+        print('loop stopped')
         vid.release()
 
     def stop(self):
