@@ -29,11 +29,11 @@ class VideoThread(QThread):
 class App(QWidget):
     def __init__(self, camera):
         super().__init__()
-        self.title = 'PyQt5 Video'
+        self.title = 'Boson Heater Test'
         self.left = 100
         self.top = 100
-        self.width = 640
-        self.height = 512
+        self.width = 680
+        self.height = 600
 
         self.camera = camera
 
@@ -41,16 +41,38 @@ class App(QWidget):
 
     @pyqtSlot(QImage)
     def setImage(self, image):
-        self.label.setPixmap(QPixmap.fromImage(image))
+        self.img_container.setPixmap(QPixmap.fromImage(image))
 
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
-        self.resize(1000, 800)
-        # create a label
-        self.label = QLabel(self)
-        self.label.move(280, 120)
-        self.label.resize(640, 512)
+
+        # Layout
+        self.img_container = QLabel(self)
+        sn_input_form = QFormLayout()
+        sn_input_form.addRow(QLabel("PN:"), QLineEdit())
+        overlay_check_form = QFormLayout()
+        overlay_check_form.addRow(QLabel("Overlay:"), QCheckBox())
+        save_button = QPushButton("Save")
+
+        main_grid = QVBoxLayout()
+        main_grid.addStretch()
+        control_grid = QHBoxLayout()
+        control_grid.addStretch()
+        control_grid.setSpacing(20)
+
+        self.img_container.setAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
+        main_grid.addWidget(self.img_container, 5)
+        main_grid.addLayout(control_grid, 1)
+        sn_input_form.setFormAlignment(Qt.AlignLeft)
+        sn_input_form.setHorizontalSpacing(10)
+        control_grid.addLayout(sn_input_form, 2)
+        overlay_check_form.setHorizontalSpacing(10)
+        control_grid.addLayout(overlay_check_form, 1)
+        control_grid.addWidget(save_button, 1)
+
+        self.setLayout(main_grid)
+
         th = VideoThread(self, self.camera)
         th.changePixmap.connect(self.setImage)
         th.start()
@@ -63,5 +85,5 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = App(cam)
     app.exit(app.exec_())
-    cam.close()
+    cam.stop()
 

@@ -23,9 +23,8 @@ class BosonCamera:
             color_frame = np.repeat(self.current_frame[:, :, np.newaxis], 3, axis=2)
             on_new_frame(color_frame)
 
+        self.vid.release()
+
     def stop(self):
         stop_signal = True
 
-    def close(self):
-        stop_signal = True
-        self.vid.release()
