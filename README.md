@@ -7,8 +7,11 @@ This is an application for testing GMSL Boson image quality and whether the heat
 ## Setup 
 
 When connecting a camera, you must connect the GMSL2 camera to a power injector, which must be connected to a power supply. 
+
 ![Power Injector](assets/power_injector.jpg)
+
 Plug the other end of the power injector to the fifth GMSL2 port on the D3 SerDes board. Apply 12 volts to the power supply.
+
 ![Connection](assets/connection.jpg)
 
 ## Usage
