@@ -7,7 +7,7 @@ import os
 import threading
 
 IMG_FONT = cv2.FONT_HERSHEY_SIMPLEX
-YELLOW_COLOR = (0, 255, 255)
+WHITE_COLOR = (255, 255, 255)
 
 class BosonCamera:
     stop_signal = False
@@ -57,10 +57,10 @@ class BosonCamera:
 
     def add_text_to_image(self):
         loc = self.text_position()
-        return cv2.putText(self.current_frame, self.pn, loc, IMG_FONT, .6, YELLOW_COLOR, 1,
+        return cv2.putText(self.current_frame, self.pn, loc, IMG_FONT, .5, WHITE_COLOR, 1,
                 cv2.LINE_AA)
 
     def text_position(self):
-        y_loc = self.height - 20
-        x_loc = int(self.width / 2 - (5 * len(self.pn)))
+        y_loc = self.height - 10
+        x_loc = 20
         return (x_loc, y_loc)

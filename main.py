@@ -48,21 +48,18 @@ class OverlayImage(QLabel):
         qp.end()
 
     def drawText(self, qp):
-        pen = QPen(Qt.yellow)
+        pen = QPen(Qt.white)
         pen.setWidth(1)
         qp.setPen(pen)
 
         font = QFont()
         font.setFamily('Arial')
-        font.setPointSize(14)
+        font.setPointSize(11)
         qp.setFont(font)
 
-        vpos = self.geometry().height() - 70
-        hpos = self.geometry().width() / 2 - self.getTextOffset()
+        vpos = self.geometry().height() - 60
+        hpos = 10
         qp.drawText(hpos, vpos, self.text)
-
-    def getTextOffset(self):
-        return 7.5 * len(self.text) / 2
 
     def setImage(self, image):
         self.image = image
