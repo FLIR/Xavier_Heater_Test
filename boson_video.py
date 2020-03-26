@@ -38,7 +38,7 @@ class BosonCamera:
         self.vid.release()
 
     def stop(self):
-        stop_signal = True
+        self.stop_signal = True
 
     def set_overlay(self, overlay):
         self.overlay = overlay

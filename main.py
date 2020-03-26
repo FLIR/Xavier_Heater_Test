@@ -1,13 +1,14 @@
 #!/usr/bin/python3
 
 import sys
+from time import sleep
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QThread, Qt, QPoint, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import *
 
 from boson_video import BosonCamera
-
+from boson_i2c import start_heater
 
 class VideoThread(QThread):
     changePixmap = pyqtSignal(QImage)
@@ -30,6 +31,7 @@ class OverlayImage(QLabel):
     image = QImage()
     text = ""
     overlay = True
+    capture_thread = None
 
     def __init__(self):
         super().__init__()
@@ -89,7 +91,11 @@ class App(QWidget):
     def setImage(self, image):
         self.overlay_image.setImage(image)
         self.overlay_image.update()
-        #self.overlay_image.setImage(QPixmap.fromImage(image))
+
+    def onClose(self):
+        if self.camera:
+            self.camera.stop()
+        self.capture_thread.wait()
 
     def initUI(self):
         self.setWindowTitle(self.title)
@@ -97,7 +103,6 @@ class App(QWidget):
 
         # Layout
         self.overlay_image = OverlayImage()
-        #self.overlay_image.initUI()
         pn_input_form = QFormLayout()
         self.pn_input = QLineEdit()
         pn_input_form.addRow(QLabel("PN:"), self.pn_input)
@@ -106,9 +111,6 @@ class App(QWidget):
         overlay_check_form.addRow(QLabel("Overlay:"), self.overlay_check)
         self.save_button = QPushButton("Save")
         self.error_message_box = QLabel()
-
-        # self.overlay_text.setText("Test")
-        # self.overlay_text.move(100, 100)
 
         self.error_message_box.setStyleSheet("color: red")
 
@@ -119,10 +121,7 @@ class App(QWidget):
         control_grid.addStretch()
         control_grid.setSpacing(20)
 
-        #self.overlay_image.setAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
-        # self.img_container.setAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
         img_grid.addWidget(self.overlay_image)
-        # img_grid.addWidget(self.overlay_text)
         main_grid.addLayout(img_grid, 20)
         main_grid.addLayout(control_grid, 1)
         pn_input_form.setFormAlignment(Qt.AlignLeft)
@@ -141,9 +140,9 @@ class App(QWidget):
         self.save_button.clicked.connect(self.saveImage)
         self.pn_input.textChanged.connect(self.pnChanged)
 
-        th = VideoThread(self, self.camera)
-        th.changePixmap.connect(self.setImage)
-        th.start()
+        self.capture_thread = VideoThread(self, self.camera)
+        self.capture_thread.changePixmap.connect(self.setImage)
+        self.capture_thread.start()
         self.show()
 
     def overlayChanged(self):
@@ -157,15 +156,22 @@ class App(QWidget):
         self.overlay_image.setText(pn_text)
 
     def saveImage(self):
+        self.error_message_box.setText('')
+        if self.pn_input.text().strip() == '':
+            self.error_message_box.setText('Must enter part number')
+            return
         self.camera.save_image()
 
 
 if __name__ == '__main__':
     cam = BosonCamera()
     cam.initialize()
+    start_heater()
 
-    app = QApplication(sys.argv)
-    ex = App(cam)
-    app.exit(app.exec_())
-    cam.stop()
-
+    try:
+        app = QApplication(sys.argv)
+        ex = App(cam)
+        app.aboutToQuit.connect(ex.onClose)
+        app.exit(app.exec_())
+    finally:
+        cam.stop()
