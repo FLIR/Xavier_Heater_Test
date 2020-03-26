@@ -6,12 +6,17 @@ import matplotlib.pyplot as plt
 import os
 import threading
 
+IMG_FONT = cv2.FONT_HERSHEY_SIMPLEX
+YELLOW_COLOR = (0, 255, 255)
+
 class BosonCamera:
     stop_signal = False
     vid = None
     current_frame = None
     overlay = True
     pn = ""
+    width = 640
+    height = 513
 
     def __init__(self):
         self.save_lock = threading.RLock()
@@ -45,5 +50,17 @@ class BosonCamera:
         desktop = os.path.join(os.path.expanduser('~'), 'Desktop')
         filename = os.path.join(desktop, f'{self.pn}.png')
         with self.save_lock:
-            cv2.imwrite(filename, self.current_frame)
+            image = self.current_frame
+            if(self.overlay):
+                image = self.add_text_to_image()
+            cv2.imwrite(filename, image)
 
+    def add_text_to_image(self):
+        loc = self.text_position()
+        return cv2.putText(self.current_frame, self.pn, loc, IMG_FONT, .6, YELLOW_COLOR, 1,
+                cv2.LINE_AA)
+
+    def text_position(self):
+        y_loc = self.height - 20
+        x_loc = int(self.width / 2 - (5 * len(self.pn)))
+        return (x_loc, y_loc)
