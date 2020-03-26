@@ -4,7 +4,7 @@ import sys
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QThread, Qt, QPoint, pyqtSignal, pyqtSlot
-from PyQt5.QtGui import QImage, QPixmap, QPainter
+from PyQt5.QtGui import *
 
 from boson_video import BosonCamera
 
@@ -26,17 +26,50 @@ class VideoThread(QThread):
         self.changePixmap.emit(p)
 
 
-class OverlayImage(QWidget):
+class OverlayImage(QLabel):
+    image = QImage()
+    text = ""
+    overlay = True
+
     def __init__(self):
-        super.__init__()
+        super().__init__()
 
-    def initUI(self):
-        self.img_container = QLabel()
-        self.img_container.setPixmap(QPixmap())
-        self.overlay_text = QLabel("Test")
+    def paintEvent(self, e):
+        qp = QPainter()
+        qp.begin(self)
 
-    def setImage(self, pixmap):
-        self.img_container.setPixmap(pixmap)
+        qp.drawImage(QPoint(), self.image)
+
+        if self.overlay:
+            self.drawText(qp)
+
+        qp.end()
+
+    def drawText(self, qp):
+        pen = QPen(Qt.yellow)
+        pen.setWidth(1)
+        qp.setPen(pen)
+
+        font = QFont()
+        font.setFamily('Arial')
+        font.setPointSize(14)
+        qp.setFont(font)
+
+        vpos = self.geometry().height() - 70
+        hpos = self.geometry().width() / 2 - self.getTextOffset()
+        qp.drawText(hpos, vpos, self.text)
+
+    def getTextOffset(self):
+        return 7.5 * len(self.text) / 2
+
+    def setImage(self, image):
+        self.image = image
+
+    def setText(self, text):
+        self.text = text
+
+    def setOverlay(self, overlay):
+        self.overlay = overlay
 
 
 class App(QWidget):
@@ -54,14 +87,17 @@ class App(QWidget):
 
     @pyqtSlot(QImage)
     def setImage(self, image):
-        self.img_container.setPixmap(QPixmap.fromImage(image))
+        self.overlay_image.setImage(image)
+        self.overlay_image.update()
+        #self.overlay_image.setImage(QPixmap.fromImage(image))
 
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
         # Layout
-        self.img_container = QLabel()
+        self.overlay_image = OverlayImage()
+        #self.overlay_image.initUI()
         pn_input_form = QFormLayout()
         self.pn_input = QLineEdit()
         pn_input_form.addRow(QLabel("PN:"), self.pn_input)
@@ -70,12 +106,10 @@ class App(QWidget):
         overlay_check_form.addRow(QLabel("Overlay:"), self.overlay_check)
         self.save_button = QPushButton("Save")
         self.error_message_box = QLabel()
-        self.overlay_text = QLabel(self)
 
-        self.overlay_text.setText("Test")
-        self.overlay_text.move(100, 100)
+        # self.overlay_text.setText("Test")
+        # self.overlay_text.move(100, 100)
 
-        self.error_message_box.setText("asdfd")
         self.error_message_box.setStyleSheet("color: red")
 
         main_grid = QVBoxLayout()
@@ -85,8 +119,9 @@ class App(QWidget):
         control_grid.addStretch()
         control_grid.setSpacing(20)
 
-        self.img_container.setAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
-        img_grid.addWidget(self.img_container)
+        #self.overlay_image.setAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
+        # self.img_container.setAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
+        img_grid.addWidget(self.overlay_image)
         # img_grid.addWidget(self.overlay_text)
         main_grid.addLayout(img_grid, 20)
         main_grid.addLayout(control_grid, 1)
@@ -106,10 +141,6 @@ class App(QWidget):
         self.save_button.clicked.connect(self.saveImage)
         self.pn_input.textChanged.connect(self.pnChanged)
 
-        v_offset = 100
-        move_p = QPoint(200, -200)
-        self.overlay_text.move(move_p)
-
         th = VideoThread(self, self.camera)
         th.changePixmap.connect(self.setImage)
         th.start()
@@ -118,12 +149,16 @@ class App(QWidget):
     def overlayChanged(self):
         value = self.overlay_check.isChecked()
         self.camera.set_overlay(value)
+        self.overlay_image.setOverlay(value)
 
     def pnChanged(self):
-        self.camera.set_pn(self.pn_input.text())
+        pn_text = self.pn_input.text()
+        self.camera.set_pn(pn_text)
+        self.overlay_image.setText(pn_text)
 
     def saveImage(self):
         self.camera.save_image()
+
 
 if __name__ == '__main__':
     cam = BosonCamera()
