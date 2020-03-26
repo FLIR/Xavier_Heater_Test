@@ -33,7 +33,7 @@ class App(QWidget):
         self.left = 100
         self.top = 100
         self.width = 680
-        self.height = 600
+        self.height = 650
 
         self.camera = camera
 
@@ -49,11 +49,17 @@ class App(QWidget):
 
         # Layout
         self.img_container = QLabel(self)
-        sn_input_form = QFormLayout()
-        sn_input_form.addRow(QLabel("PN:"), QLineEdit())
+        pn_input_form = QFormLayout()
+        self.pn_input = QLineEdit()
+        pn_input_form.addRow(QLabel("PN:"), self.pn_input)
         overlay_check_form = QFormLayout()
-        overlay_check_form.addRow(QLabel("Overlay:"), QCheckBox())
-        save_button = QPushButton("Save")
+        self.overlay_check = QCheckBox()
+        overlay_check_form.addRow(QLabel("Overlay:"), self.overlay_check)
+        self.save_button = QPushButton("Save")
+        self.error_message_box = QLabel()
+
+        self.error_message_box.setObjectName("error-message")
+        self.error_message_box.setStyleSheet("QLabel#error-message {color: red}")
 
         main_grid = QVBoxLayout()
         main_grid.addStretch()
@@ -62,21 +68,38 @@ class App(QWidget):
         control_grid.setSpacing(20)
 
         self.img_container.setAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
-        main_grid.addWidget(self.img_container, 5)
+        main_grid.addWidget(self.img_container, 20)
         main_grid.addLayout(control_grid, 1)
-        sn_input_form.setFormAlignment(Qt.AlignLeft)
-        sn_input_form.setHorizontalSpacing(10)
-        control_grid.addLayout(sn_input_form, 2)
+        pn_input_form.setFormAlignment(Qt.AlignLeft)
+        pn_input_form.setHorizontalSpacing(10)
+        control_grid.addLayout(pn_input_form, 2)
         overlay_check_form.setHorizontalSpacing(10)
-        control_grid.addLayout(overlay_check_form, 1)
-        control_grid.addWidget(save_button, 1)
+        control_grid.addLayout(overlay_check_form, 2)
+        control_grid.addWidget(self.save_button, 1)
+        self.error_message_box.setAlignment(Qt.AlignCenter)
+        main_grid.addWidget(self.error_message_box, 1)
 
         self.setLayout(main_grid)
+
+        self.overlay_check.setChecked(True)
+        self.overlay_check.stateChanged.connect(self.overlayChanged)
+        self.save_button.clicked.connect(self.saveImage)
+        self.pn_input.textChanged.connect(self.pnChanged)
 
         th = VideoThread(self, self.camera)
         th.changePixmap.connect(self.setImage)
         th.start()
         self.show()
+
+    def overlayChanged(self):
+        value = self.overlay_check.isChecked()
+        self.camera.set_overlay(value)
+
+    def pnChanged(self):
+        self.camera.set_pn(self.pn_input.text())
+
+    def saveImage(self):
+        self.camera.save_image()
 
 if __name__ == '__main__':
     cam = BosonCamera()
