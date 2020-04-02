@@ -22,6 +22,18 @@ Unfortunately every time you connect a new camera, you must restart the computer
 
 When saving an image, the image gets saved to the desktop with the name matching the part number input into the text box i.e. 20007-12345 -> ~/Desktop/20007-12345.png. Checking the 'Overlay' checkbox enables/disables saving the image with the part number overlaid the image.
 
+## Updates
+
+Open Terminator terminal application `Ctrl+Alt+T`
+
+Run the following commands
+```sh
+$ cd Heater_Test
+$ git pull origin master
+```
+
+Run the application again and ensure that it has been updated
+
 ## Troubleshooting/Questions
 
 This is a first release, so I have no troubleshooting guidelines yet. If you run into issues, please contact me (Anil Dhurjaty - adhurjaty@novacoast.com).
