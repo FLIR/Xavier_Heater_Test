@@ -33,7 +33,7 @@ def start_heater():
 
 
 def stop_heater():
-    send_i2c(BOSON_BUS, BOSON_I2C_ADDR, 0x19, 0x08)
+    send_i2c(BOSON_BUS, BOSON_I2C_ADDR, 0x19, 0x01)
     send_i2c(BOSON_BUS, BOSON_I2C_ADDR, 0x18, 0x0F)
 
 
