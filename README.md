@@ -28,7 +28,7 @@ Open Terminator terminal application `Ctrl+Alt+T`
 
 Run the following commands
 ```sh
-$ cd Heater_Test
+$ cd HeaterTest
 $ git pull origin master
 ```
 
