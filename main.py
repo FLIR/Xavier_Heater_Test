@@ -8,7 +8,7 @@ from PyQt5.QtCore import QThread, Qt, QPoint, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import *
 
 from boson_video import BosonCamera
-from boson_i2c import start_heater
+from boson_i2c import start_heater, stop_heater, send_ffc
 
 class VideoThread(QThread):
     changePixmap = pyqtSignal(QImage)
@@ -79,6 +79,7 @@ class App(QWidget):
         self.top = 100
         self.width = 680
         self.height = 650
+        self.heater_on = True
 
         self.camera = camera
 
@@ -106,6 +107,8 @@ class App(QWidget):
         overlay_check_form = QFormLayout()
         self.overlay_check = QCheckBox()
         overlay_check_form.addRow(QLabel("Overlay:"), self.overlay_check)
+        self.heater_button = QPushButton("Turn Heater Off")
+        self.ffc_button = QPushButton("FFC")
         self.save_button = QPushButton("Save")
         self.error_message_box = QLabel()
 
@@ -117,6 +120,8 @@ class App(QWidget):
         control_grid = QHBoxLayout()
         control_grid.addStretch()
         control_grid.setSpacing(20)
+        button_grid = QHBoxLayout()
+        button_grid.addStretch()
 
         img_grid.addWidget(self.overlay_image)
         main_grid.addLayout(img_grid, 20)
@@ -126,7 +131,10 @@ class App(QWidget):
         control_grid.addLayout(pn_input_form, 2)
         overlay_check_form.setHorizontalSpacing(10)
         control_grid.addLayout(overlay_check_form, 2)
-        control_grid.addWidget(self.save_button, 1)
+        button_grid.addWidget(self.ffc_button)
+        button_grid.addWidget(self.heater_button)
+        button_grid.addWidget(self.save_button)
+        control_grid.addLayout(button_grid, 2)
         self.error_message_box.setAlignment(Qt.AlignCenter)
         main_grid.addWidget(self.error_message_box, 1)
 
@@ -135,6 +143,8 @@ class App(QWidget):
         self.overlay_check.setChecked(True)
         self.overlay_check.stateChanged.connect(self.overlayChanged)
         self.save_button.clicked.connect(self.saveImage)
+        self.ffc_button.clicked.connect(self.triggerFFC)
+        self.heater_button.clicked.connect(self.toggleHeater)
         self.pn_input.textChanged.connect(self.pnChanged)
 
         self.capture_thread = VideoThread(self, self.camera)
@@ -158,6 +168,20 @@ class App(QWidget):
             self.error_message_box.setText('Must enter part number')
             return
         self.camera.save_image()
+
+    def triggerFFC(self):
+        send_ffc()
+
+    def toggleHeater(self):
+        try:
+            if self.heater_on:
+                stop_heater()
+                self.heater_button.setText("Turn Heater On")
+            else:
+                start_heater()
+                self.heater_button.setText("Turn Heater Off")
+        finally:
+            self.heater_on = not self.heater_on
 
 
 if __name__ == '__main__':
