@@ -4,7 +4,38 @@
 
 This is an application for testing GMSL Boson image quality and whether the heater is functioning properly. This is intended to be used on the Nvidia AGX Xavier platform with a D3 SerDes GMSL2 adapter board.
 
-## Setup 
+## Installation
+Clone this repo and change to this directory
+From the command line, enter:
+```sh
+git clone git@github.com:FLIR/Xavier_Heater_Test.git
+cd Xavier_Heater_Test
+```
+### Installing Python
+```sh
+sudo apt-get update
+sudo apt-get install python3 python3-pip
+```
+### Installing Dependencies
+```sh
+sudo apt-get install python-opencv
+pip3 install -r requirements.txt
+```
+Ensure that the dependencies installed properly
+```sh
+python3
+```
+```python
+>> import cv
+>> import numpy
+```
+if you did not get errors, the packages were installed properly
+### Grant Execute Permission
+```sh
+chmod +x main.py
+```
+
+## Pysical Setup 
 
 When connecting a camera, you must connect the GMSL2 camera to a power injector, which must be connected to a power supply. 
 
@@ -21,18 +52,6 @@ To use the application, run `main.py` from command line. Or, if Michael or Yves 
 Unfortunately every time you connect a new camera, you must restart the computer - the Boson driver cannot detect when a new camera has been connected.
 
 When saving an image, the image gets saved to the desktop with the name matching the part number input into the text box i.e. 20007-12345 -> ~/Desktop/20007-12345.png. Checking the 'Overlay' checkbox enables/disables saving the image with the part number overlaid the image.
-
-## Updates
-
-Open Terminator terminal application `Ctrl+Alt+T`
-
-Run the following commands
-```sh
-$ cd HeaterTest
-$ git pull origin master
-```
-
-Run the application again and ensure that it has been updated
 
 ## Troubleshooting/Questions
 
