@@ -1,5 +1,8 @@
 #!/usr/bin/python3
 
+# This code is designed to run with the D3 Xavier driver which 
+# we distribute separately (in binary form not source.)
+
 import sys
 from time import sleep
 
