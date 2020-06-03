@@ -18,7 +18,7 @@ sudo apt-get install python3 python3-pip
 ```
 ### Installing Dependencies
 ```sh
-sudo apt-get install python-opencv
+sudo apt-get install python3-opencv pkg-config python3-setuptools
 pip3 install -r requirements.txt
 ```
 Ensure that the dependencies installed properly
